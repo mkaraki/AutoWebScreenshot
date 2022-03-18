@@ -2,15 +2,19 @@
 using OpenQA.Selenium.Chrome;
 using System.Reflection;
 
-if (!Directory.Exists("output"))
-{ 
-    Directory.CreateDirectory("output");
-}
+
+var service = ChromeDriverService.CreateDefaultService();
+service.LogPath = "chromedriver.log";
+service.EnableVerboseLogging = true;
 
 ChromeOptions options = new ChromeOptions();
 options.AddArgument("headless");
 options.AddArgument("window-size=1920x1920");
-using (var driver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), options))
+
+if ((Environment.GetEnvironmentVariable("NO_SANDBOX") ?? "0") == "1")
+    options.AddArgument("no-sandbox");
+
+using (var driver = new ChromeDriver(service, options))
 {
     driver.Url = args[0];
 
@@ -18,6 +22,5 @@ using (var driver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetExecuting
 
     var screenshot = (driver as ITakesScreenshot).GetScreenshot();
 
-    var outpath = Path.Combine("output", args[1]);
-    screenshot.SaveAsFile(outpath);
+    screenshot.SaveAsFile(args[1]);
 }
